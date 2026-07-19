@@ -1,0 +1,10 @@
+# Two balls in separate horizontal lanes (y = -1.5 and y = +1.5), each with a
+# random x start, random speed, and random left/right direction. The lanes are
+# 3.0 apart (> 2*radius), so paths stay parallel and never collide -- while
+# directions may match or oppose for variety. Each index draws a fresh sample.
+#   python generate_dataset.py --scenario configs/scenarios/two_parallel.yaml \
+#       --set output.num_videos=200
+objects:
+  explicit:
+    - {shape: sphere, size: large, position_range: [[-2.0, 2.0], [-1.5, -1.5]], speed: [2.0, 4.0], direction: x}
+    - {shape: sphere, size: large, position_range: [[-2.0, 2.0], [ 1.5,  1.5]], speed: [2.0, 4.0], direction: x}

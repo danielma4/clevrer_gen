@@ -1,0 +1,25 @@
+# Five spheres, random placement + velocity, zero collisions.
+seed: 42
+
+objects:
+  num: 5
+  speed: [1, 6]
+  direction: random
+
+properties:
+  shapes: [sphere]
+  sizes: {large: 0.35, small: 0.35}
+
+output:
+  collision_filter:
+    max: 0
+  collision_filter_max_tries: 100
+
+render:
+  samples: 16
+  device: OPTIX
+  views:
+    perspective: true
+    topdown: false
+  passes:
+    flow: false

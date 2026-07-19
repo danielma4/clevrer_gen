@@ -1,0 +1,6 @@
+# Two large objects launched head-on so they collide near the origin.
+# A minimal, fully-controlled probe scenario.
+objects:
+  explicit:
+    - {shape: sphere, size: large, color: red,  material: rubber, position: [-2.5, 0.0], velocity: [3.0, 0.0]}
+    - {shape: sphere, size: large, color: blue, material: metal,  position: [ 2.5, 0.0], velocity: [-3.0, 0.0]}

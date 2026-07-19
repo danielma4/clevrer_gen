@@ -1,0 +1,13 @@
+# A single sphere with random start position and random (but constant) velocity.
+# Each video index draws a fresh sample (RNG = seed + index), so generating
+# N videos yields N distinct random single-ball clips.
+#   python generate_dataset.py --scenario configs/scenarios/one_ball.yaml \
+#       --set output.num_videos=200
+objects:
+  num: 1
+  place_region: [[-2.5, 2.5], [-2.5, 2.5]]   # random start position
+  speed: [2.0, 4.0]      # random speed magnitude; set [3.0, 3.0] to fix it
+  direction: random      # random in-plane heading
+  accel: [0.0, 0.0, 0.0] # constant velocity (no acceleration)
+properties:
+  shapes: [sphere]       # restrict to a ball

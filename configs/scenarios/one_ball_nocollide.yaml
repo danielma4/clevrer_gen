@@ -1,0 +1,20 @@
+# One sphere, random placement + velocity. No collision possible (single object).
+seed: 42
+
+objects:
+  num: 1
+  speed: [1, 6]
+  direction: random
+
+properties:
+  shapes: [sphere]
+  sizes: {large: 0.35, small: 0.35}
+
+render:
+  samples: 16
+  device: OPTIX
+  views:
+    perspective: true
+    topdown: false
+  passes:
+    flow: false

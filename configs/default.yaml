@@ -1,0 +1,89 @@
+# Default configuration for clevrer-gen.
+# Every field here is overridable via a scenario yaml or `--set key.sub=value`.
+# Scenario yamls are deep-merged on top of this file.
+
+seed: 0                   # int for reproducibility; null -> random each run (recorded in annotation)
+
+output:
+  base: output            # parent dir holding all runs
+  name: default           # run subdir; data_root = base/name (e.g. output/one_ball)
+  root: null              # auto-set to base/name; set an exact path here to override
+  split: train            # train | val | test
+  start_index: 0          # index of first video (for sharding across machines)
+  num_videos: 5
+  save_frames: false      # also dump per-frame jpgs (SlotFormer can read mp4 or jpgs)
+  overwrite: false        # skip a video if its mp4 already exists, unless true
+  # Keep only sims whose collision count matches; the physics is re-rolled
+  # (cheaply) until it does, before any rendering. null disables filtering.
+  #   {max: 0} -> no collisions   {min: 1} -> at least one   {min: 1, max: 1} -> exactly one
+  collision_filter: null
+  collision_filter_max_tries: 50
+
+video:
+  num_frames: 128         # CLEVRER default
+  fps: 25
+  width: 480
+  height: 320
+
+physics:
+  gravity: [0.0, 0.0, -9.8]
+  substeps: 4             # physics steps simulated per rendered frame (accuracy)
+  ground_friction: 0.0
+  default_friction: 0.0
+  default_restitution: 0.5
+  default_mass: 1.0
+  linear_damping: 0.0     # constant velocity, no decay
+  angular_damping: 0.0
+  settle_frames: 0        # optional frames to let objects settle before t=0 (not recorded)
+
+objects:
+  num: [3, 6]             # int, or [min, max] inclusive range sampled per video
+  place_region: [[-3.0, 3.0], [-3.0, 3.0]]   # [x_range, y_range] on the ground plane
+  min_dist: 0.4           # minimum surface gap between object centers at placement
+  max_place_retries: 50   # retries before re-placing all objects
+  speed: [1.0, 4.0]       # initial speed magnitude range (m/s); [0,0] -> static start
+  direction: random       # random | toward_center | away_from_center | x | y | [vx, vy]
+                          #   x/y: parallel to that axis with a random +/- sign
+  accel: [0.0, 0.0, 0.0]  # constant acceleration applied to every object (m/s^2)
+  angular_speed: [0.0, 0.0]   # initial spin magnitude range (rad/s)
+  # Optional explicit per-object specs (index-aligned). Each entry may set any of:
+  #   shape, color, material, size, position [x,y], velocity [vx,vy], mass, ...
+  # When set, len(explicit) overrides `num`. Unspecified fields are sampled.
+  explicit: null
+
+properties:
+  shapes: [cube, sphere, cylinder]
+  colors:
+    gray:   [87, 87, 87]
+    red:    [173, 35, 35]
+    blue:   [42, 75, 215]
+    green:  [29, 105, 20]
+    brown:  [129, 74, 25]
+    purple: [129, 38, 192]
+    cyan:   [41, 208, 208]
+    yellow: [255, 238, 51]
+  materials: [rubber, metal]
+  sizes:                  # name -> geometric scale (sphere radius / cube half-extent)
+    large: 0.7
+    small: 0.35
+
+render:
+  device: OPTIX           # OPTIX | CUDA | CPU
+  threads: null           # CPU render threads per process; null = Blender AUTO (all cores)
+  samples: 128            # Cycles samples per pixel
+  views:                  # which view(s) to render per scene, from one sim/seed
+    perspective: true     # standard CLEVRER 3D view (+ annotations/masks)
+    topdown: false        # orthographic overhead view (-> topdown/...)
+  denoise: true
+  camera_jitter: 0.5      # random offset added to the base camera position
+  light_jitter: 1.0
+  passes:
+    segmentation: true    # per-object masks (-> derender_proposals RLE)
+    flow: false           # screen-space motion vectors (extra vector pass)
+
+# Optional, used only by the standalone top-down renderer (render_topdown.py);
+# ignored by the main RGB pipeline.
+topdown:
+  resolution: 320         # square overhead frame size
+  margin: 1.0             # extra world-units padding around place_region
+  ortho_scale: null       # override the auto-fit orthographic span if set

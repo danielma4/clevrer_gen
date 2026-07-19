@@ -1,0 +1,6 @@
+# Crowded, high-speed scenario: many objects with large initial speeds aimed
+# toward the center to maximise collisions. Stresses object-count + dynamics.
+objects:
+  num: [8, 10]
+  speed: [4.0, 7.0]
+  direction: toward_center
