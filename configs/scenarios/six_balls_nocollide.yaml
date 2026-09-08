@@ -1,0 +1,31 @@
+# OOD (object count): six spheres, random placement + velocity, zero collisions.
+seed: 42
+
+objects:
+  num: 6
+  speed: [1, 6]
+  direction: random
+
+# Shorter clips than the 128-frame default: identical physics (same dt/forces),
+# just fewer frames -> drops the empty tail after objects exit. 64 >> the 30-frame
+# training interval span, so surviving windows are unchanged. Filter with --video_len 64.
+video:
+  num_frames: 64
+
+properties:
+  shapes: [sphere]
+  sizes: {large: 0.35, small: 0.35}
+
+output:
+  collision_filter:
+    max: 0
+  collision_filter_max_tries: 300
+
+render:
+  samples: 16
+  device: OPTIX
+  views:
+    perspective: true
+    topdown: false
+  passes:
+    flow: false

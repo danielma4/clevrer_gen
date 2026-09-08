@@ -30,7 +30,11 @@ def rest_height(shape, size_scale):
 
 
 def half_extents(shape, s):
-    """Half-extents / radius used for both collision body and mesh."""
+    """Half-extents / radius used by the collision body and the rendered mesh.
+
+    Clips rendered before 2026-08-13 did not apply _SHAPE_SCALE to the mesh; use
+    render_half_extents(..., legacy=True) for those.
+    """
     sc = s * _SHAPE_SCALE[shape]
     if shape == 'cube':
         return ('box', (sc, sc, sc))
@@ -39,6 +43,24 @@ def half_extents(shape, s):
     if shape == 'cylinder':
         return ('cylinder', (sc, sc))   # (radius, half_height)
     raise ValueError(f'unknown shape: {shape}')
+
+
+def render_half_extents(shape, s, legacy=False):
+    """[x, y, z] half-extents of the rendered mesh, in world units.
+
+    `legacy=True` returns the geometry used by clips rendered before the
+    2026-08-13 fix, when Renderer.add_objects applied no _SHAPE_SCALE. Only
+    cubes and cylinders differ; spheres are identical either way.
+    """
+    if legacy:
+        return [float(s), float(s), float(s)]
+    kind, dim = half_extents(shape, s)
+    if kind == 'sphere':
+        return [float(dim)] * 3
+    if kind == 'box':
+        return [float(d) for d in dim]
+    radius, half_h = dim
+    return [float(radius), float(radius), float(half_h)]
 
 
 class Sampler:

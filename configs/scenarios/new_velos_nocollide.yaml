@@ -1,0 +1,30 @@
+# OOD (velocity): 1-5 spheres, random placement + velocity, zero collisions.
+# Only difference vs the in-distribution set is speed: (0,1) U [7,10], excludes training [1,6].
+seed: 42
+
+objects:
+  num: [1, 5]
+  speed: [[0, 1], [7, 10]]
+  direction: random
+
+# Shorter clips (see six_balls_nocollide): same physics, drops the empty tail.
+video:
+  num_frames: 64
+
+properties:
+  shapes: [sphere]
+  sizes: {large: 0.35, small: 0.35}
+
+output:
+  collision_filter:
+    max: 0
+  collision_filter_max_tries: 200
+
+render:
+  samples: 16
+  device: OPTIX
+  views:
+    perspective: true
+    topdown: false
+  passes:
+    flow: false

@@ -8,7 +8,7 @@ import bpy
 import numpy as np
 from mathutils import Vector
 
-from . import materials
+from . import materials, properties as props
 
 _CAM_LOC = (7.48, -6.51, 5.34)   # frames the ~[-3,3] ground region like CLEVRER
 # Matches clevr-dataset-gen's base_scene.blend light rig exactly: a weak sun
@@ -137,17 +137,28 @@ class Renderer:
 
     # ---- objects ------------------------------------------------------------
     def add_objects(self, object_property):
+        """Build meshes from properties.half_extents, matching the pybullet body.
+
+        Until 2026-08-13 this used the raw size_scale instead, so cubes and
+        cylinders rendered 25% / 15% larger than they collided and rested at the
+        collision half-height (a cube sat ~0.07 into the floor). Spheres were
+        never affected (_SHAPE_SCALE 1.0), so only new_shapes_nocollide is, and
+        the clips generated before the fix keep the old geometry. Annotations
+        record render_half_extents per object, so consumers read the geometry
+        rather than assuming a convention.
+        """
         objs = []
         for spec in object_property:
-            s = spec['size_scale']
             shape = spec['shape']
+            _, dim = props.half_extents(shape, spec['size_scale'])
             if shape == 'cube':
-                bpy.ops.mesh.primitive_cube_add(size=2 * s)
+                bpy.ops.mesh.primitive_cube_add(size=2 * dim[0])
             elif shape == 'sphere':
-                bpy.ops.mesh.primitive_uv_sphere_add(radius=s, segments=48,
+                bpy.ops.mesh.primitive_uv_sphere_add(radius=dim, segments=48,
                                                      ring_count=24)
             else:
-                bpy.ops.mesh.primitive_cylinder_add(radius=s, depth=2 * s,
+                bpy.ops.mesh.primitive_cylinder_add(radius=dim[0],
+                                                    depth=2 * dim[1],
                                                     vertices=64)
             ob = bpy.context.object
             ob.name = f"obj_{spec['id']:02d}"

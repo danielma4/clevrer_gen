@@ -13,6 +13,8 @@ import os
 import numpy as np
 from pycocotools import mask as mask_utils
 
+from . import properties as props
+
 
 def _group_dir(index, prefix):
     lo = (index // 1000) * 1000
@@ -59,8 +61,16 @@ def write_annotation(root, split, index, video_fn, sim, inside_view, seed=None):
             })
         motion.append({'frame_id': t, 'objects': objs})
 
+    # `size` is only a label (both names can map to the same scale), so record
+    # the numeric geometry too. Render and physics extents are stored separately
+    # because they have diverged historically; see Renderer.add_objects.
     obj_prop = [{'object_id': o['id'], 'shape': o['shape'], 'color': o['color'],
-                 'material': o['material'], 'size': o['size']}
+                 'material': o['material'], 'size': o['size'],
+                 'size_scale': float(o['size_scale']),
+                 'render_half_extents': props.render_half_extents(
+                     o['shape'], o['size_scale']),
+                 'physics_half_extents': props.render_half_extents(
+                     o['shape'], o['size_scale'])}
                 for o in sim['object_property']]
     collisions = [{'frame_id': c['frame'], 'object_ids': c['object_ids'],
                    'location': c['location']} for c in sim['collisions']]

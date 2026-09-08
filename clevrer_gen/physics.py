@@ -19,6 +19,20 @@ def _as_range(v):
     return float(v), float(v)
 
 
+def _sample_speed(v, rng):
+    """Sample from a scalar, [lo, hi], or a union of segments [[lo,hi], ...].
+
+    A union draws uniformly over the whole set (segment picked ~ its width).
+    """
+    if isinstance(v, (list, tuple)) and v and isinstance(v[0], (list, tuple)):
+        segs = np.asarray(v, dtype=float)
+        widths = segs[:, 1] - segs[:, 0]
+        lo, hi = segs[rng.choice(len(segs), p=widths / widths.sum())]
+        return rng.uniform(lo, hi)
+    lo, hi = _as_range(v)
+    return rng.uniform(lo, hi)
+
+
 def _unit(vec):
     n = math.hypot(vec[0], vec[1])
     return (vec[0] / n, vec[1] / n) if n > 1e-9 else (1.0, 0.0)
@@ -106,8 +120,7 @@ def build_objects(cfg, rng):
         if 'velocity' in spec:
             vx, vy = spec['velocity']
         else:
-            speed_lo, speed_hi = _as_range(spec.get('speed', ocfg['speed']))
-            speed = rng.uniform(speed_lo, speed_hi)
+            speed = _sample_speed(spec.get('speed', ocfg['speed']), rng)
             dx, dy = _direction(spec.get('direction', ocfg['direction']), (x, y), rng)
             vx, vy = speed * dx, speed * dy
 

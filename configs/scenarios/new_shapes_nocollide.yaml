@@ -1,0 +1,31 @@
+# OOD (shape): 1-5 objects, random placement + velocity, zero collisions.
+# Only difference vs the in-distribution set is shape: cubes + cylinders replace
+# the trained-on sphere (both non-sphere classes, sampled per object).
+seed: 42
+
+objects:
+  num: [1, 5]
+  speed: [1, 6]
+  direction: random
+
+# Shorter clips (see six_balls_nocollide): same physics, drops the empty tail.
+video:
+  num_frames: 64
+
+properties:
+  shapes: [cube, cylinder]
+  sizes: {large: 0.35, small: 0.35}
+
+output:
+  collision_filter:
+    max: 0
+  collision_filter_max_tries: 200
+
+render:
+  samples: 16
+  device: OPTIX
+  views:
+    perspective: true
+    topdown: false
+  passes:
+    flow: false
