@@ -1,0 +1,68 @@
+# OOD (discrete event): three spheres aimed at a large static block at the origin.
+# The controlled version of "sudden change of direction" -- the cause is visible and
+# always in the same place, so the model can in principle predict the reversal, and
+# the contact frame is known from the annotation. Align adek_k to contact and the
+# pre- vs post-contact error separates "sees the obstacle" from "times the bounce".
+#
+# The block is a static body: physics.py passes mass straight to createMultiBody, and
+# baseMass=0 is static in pybullet. restitution 1.0 on both sides keeps the bounce
+# elastic so speed is preserved and the reversal is unambiguous.
+#
+# Unlike every other set this one REQUIRES collisions (min: 1). Training was 100%
+# collision-free, so a null result here is ambiguous between "unseen event type" and
+# "no contact model at all" -- read it alongside the no-collision scenarios, never alone.
+seed: 42
+
+objects:
+  # explicit overrides `num`; len(explicit) = 4 (one block + three movers).
+  explicit:
+    - shape: cube
+      size: huge
+      material: rubber
+      color: gray
+      position: [0.0, 0.0]
+      velocity: [0.0, 0.0]
+      mass: 0.0            # static
+      restitution: 1.0
+    - shape: sphere
+      size: large          # pinned: `huge` is in the sizes table, so sampling could pick it
+      direction: toward_center
+      speed: [3, 6]
+      restitution: 1.0
+      position_range: [[-5.0, -3.0], [-3.0, 3.0]]
+    - shape: sphere
+      size: large          # pinned: `huge` is in the sizes table, so sampling could pick it
+      direction: toward_center
+      speed: [3, 6]
+      restitution: 1.0
+      position_range: [[3.0, 5.0], [-3.0, 3.0]]
+    - shape: sphere
+      size: large          # pinned: `huge` is in the sizes table, so sampling could pick it
+      direction: toward_center
+      speed: [3, 6]
+      restitution: 1.0
+      position_range: [[-3.0, 3.0], [3.0, 5.0]]
+
+video:
+  num_frames: 64
+
+properties:
+  shapes: [sphere]
+  sizes: {large: 0.35, small: 0.35, huge: 1.2}
+
+output:
+  num_videos: 150
+  collision_filter:
+    min: 1               # keep only clips where a bounce actually happens
+  window_filter:
+    n_frames: 30
+  collision_filter_max_tries: 400   # must satisfy bounce AND window together
+
+render:
+  samples: 16
+  device: OPTIX
+  views:
+    perspective: true
+    topdown: false
+  passes:
+    flow: false

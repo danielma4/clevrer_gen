@@ -18,6 +18,12 @@ output:
   #   {max: 0} -> no collisions   {min: 1} -> at least one   {min: 1, max: 1} -> exactly one
   collision_filter: null
   collision_filter_max_tries: 50
+  # Reject a sim pre-render unless some window of `n_frames` would survive the
+  # training loader's filter (in-view object count equal at both endpoints and
+  # non-empty). Same selection as downstream, applied before rendering, so it
+  # only avoids rendering clips that would have been dropped. null disables.
+  #   {n_frames: 29}  or  {n_frames: 29, full_objects: true}
+  window_filter: null
 
 video:
   num_frames: 128         # CLEVRER default
@@ -44,7 +50,9 @@ objects:
   speed: [1.0, 4.0]       # initial speed magnitude range (m/s); [0,0] -> static start
   direction: random       # random | toward_center | away_from_center | x | y | [vx, vy]
                           #   x/y: parallel to that axis with a random +/- sign
-  accel: [0.0, 0.0, 0.0]  # constant acceleration applied to every object (m/s^2)
+  accel: [0.0, 0.0, 0.0]  # constant accel for every object (m/s^2), or per-object
+                          #   {magnitude: range|segments (signed), direction:
+                          #    random|along|... or {along: 0.5, random: 0.5}}
   angular_speed: [0.0, 0.0]   # initial spin magnitude range (rad/s)
   # Optional explicit per-object specs (index-aligned). Each entry may set any of:
   #   shape, color, material, size, position [x,y], velocity [vx,vy], mass, ...

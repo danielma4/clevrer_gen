@@ -1,0 +1,40 @@
+# OOD (dynamics order): 1-5 spheres under constant acceleration, zero collisions.
+# Training is 100% constant-velocity, so const_velocity is a strong baseline there
+# (ade 4.41 vs the model's 2.88). Acceleration breaks it, separating learned dynamics
+# from "copy the last observed velocity".
+#
+# accel is a single global vector (physics.py applies it to every object every frame),
+# so its direction is fixed across the set; initial `direction: random` is what varies
+# the velocity/accel relationship per video. 2.0 m/s^2 over the 20-frame forecast
+# (0.8 s) adds ~1.6 m/s against a mean speed of 3.5 -- large enough to measure.
+seed: 42
+
+objects:
+  num: [1, 5]
+  speed: [1, 6]
+  direction: random
+  accel: [2.0, 0.0, 0.0]
+
+video:
+  num_frames: 64
+
+properties:
+  shapes: [sphere]
+  sizes: {large: 0.35, small: 0.35}
+
+output:
+  num_videos: 150
+  collision_filter:
+    max: 0
+  window_filter:
+    n_frames: 30
+  collision_filter_max_tries: 300
+
+render:
+  samples: 16
+  device: OPTIX
+  views:
+    perspective: true
+    topdown: false
+  passes:
+    flow: false

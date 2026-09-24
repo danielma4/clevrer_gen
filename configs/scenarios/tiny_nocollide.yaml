@@ -1,0 +1,34 @@
+# OOD (scale): 1-5 tiny spheres, zero collisions. Only difference vs in-distribution
+# is size: 0.15 vs the trained 0.35, so each ball covers ~5% of the pixels it used to.
+# Tests the pixel objective's blindness to small objects; the track objective weights
+# them the same as any other.
+seed: 42
+
+objects:
+  num: [1, 5]
+  speed: [1, 6]
+  direction: random
+
+video:
+  num_frames: 64
+
+properties:
+  shapes: [sphere]
+  sizes: {large: 0.15, small: 0.15}
+
+output:
+  num_videos: 150          # window_filter makes every rendered clip usable
+  collision_filter:
+    max: 0
+  window_filter:
+    n_frames: 30           # 30 serves both arms; see fast_nocollide.yaml
+  collision_filter_max_tries: 300
+
+render:
+  samples: 16
+  device: OPTIX
+  views:
+    perspective: true
+    topdown: false
+  passes:
+    flow: false

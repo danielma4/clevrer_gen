@@ -67,6 +67,7 @@ def write_annotation(root, split, index, video_fn, sim, inside_view, seed=None):
     obj_prop = [{'object_id': o['id'], 'shape': o['shape'], 'color': o['color'],
                  'material': o['material'], 'size': o['size'],
                  'size_scale': float(o['size_scale']),
+                 'accel': o['accel'],
                  'render_half_extents': props.render_half_extents(
                      o['shape'], o['size_scale']),
                  'physics_half_extents': props.render_half_extents(

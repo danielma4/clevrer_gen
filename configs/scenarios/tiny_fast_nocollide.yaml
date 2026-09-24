@@ -1,0 +1,33 @@
+# OOD (scale x speed): the stacked case -- tiny AND fast. Both blindness mechanisms
+# at once, so this is where a track head should win if it wins anywhere. tiny_nocollide
+# and fast_nocollide are the one-factor controls that make it attributable.
+seed: 42
+
+objects:
+  num: 1                   # matched to fast_nocollide; see the note there
+  speed: [[8, 14]]
+  direction: random
+
+video:
+  num_frames: 64
+
+properties:
+  shapes: [sphere]
+  sizes: {large: 0.15, small: 0.15}
+
+output:
+  num_videos: 150
+  collision_filter:
+    max: 0
+  window_filter:
+    n_frames: 30
+  collision_filter_max_tries: 400   # both factors stacked: lowest acceptance rate
+
+render:
+  samples: 16
+  device: OPTIX
+  views:
+    perspective: true
+    topdown: false
+  passes:
+    flow: false

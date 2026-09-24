@@ -1,0 +1,38 @@
+# 1-5 spheres, each with its own speed and own constant accel, zero collisions.
+# Half the balls accelerate along their velocity (+ speeds up, - slows/reverses),
+# half in a random direction (curved paths). OOD: balls_accel_ood.yaml.
+seed: 42
+
+objects:
+  num: [1, 5]
+  fix_num_per_video: true   # else filter re-rolls skew toward few balls
+  speed: [1, 6]
+  direction: random
+  accel:
+    magnitude: [[-2.0, -0.5], [0.5, 2.0]]
+    direction: {along: 0.5, random: 0.5}
+
+video:
+  num_frames: 64
+
+properties:
+  shapes: [sphere]
+  sizes: {large: 0.35, small: 0.35}
+
+output:
+  num_videos: 5000
+  collision_filter:
+    max: 0
+  window_filter:
+    n_frames: 29          # causal chunking: 1+4k frames, 5 history + 24 forecast
+    full_objects: true    # every ball in view for the whole window
+  collision_filter_max_tries: 300
+
+render:
+  samples: 16
+  device: OPTIX
+  views:
+    perspective: true
+    topdown: false
+  passes:
+    flow: false

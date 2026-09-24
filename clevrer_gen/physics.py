@@ -56,6 +56,23 @@ def _direction(spec, pos, rng):
     return (math.cos(theta), math.sin(theta))
 
 
+def _accel(spec, pos, vel, rng):
+    """[ax, ay, az] fixed vector, or {magnitude, direction} sampled in-plane per
+    object. magnitude: same forms as speed; signed (<0 flips the direction).
+    direction: any _direction mode, 'along' (the object's velocity), or a
+    {mode: prob} dict to mix modes across objects."""
+    if not isinstance(spec, dict):
+        return [float(v) for v in spec]
+    mode = spec.get('direction', 'random')
+    if isinstance(mode, dict):
+        modes = list(mode)
+        probs = np.asarray([mode[m] for m in modes], dtype=float)
+        mode = modes[rng.choice(len(modes), p=probs / probs.sum())]
+    mag = _sample_speed(spec['magnitude'], rng)
+    dx, dy = _unit(vel) if mode == 'along' else _direction(mode, pos, rng)
+    return [float(mag * dx), float(mag * dy), 0.0]
+
+
 def build_objects(cfg, rng):
     """Resolve the list of object specs (attributes + initial state).
 
@@ -123,6 +140,7 @@ def build_objects(cfg, rng):
             speed = _sample_speed(spec.get('speed', ocfg['speed']), rng)
             dx, dy = _direction(spec.get('direction', ocfg['direction']), (x, y), rng)
             vx, vy = speed * dx, speed * dy
+        accel = _accel(spec.get('accel', ocfg['accel']), (x, y), (vx, vy), rng)
 
         spin = rng.uniform(spin_lo, spin_hi)
         axis = rng.normal(size=3)
@@ -143,6 +161,7 @@ def build_objects(cfg, rng):
             'restitution': float(spec.get('restitution', pcfg['default_restitution'])),
             'position': [float(x), float(y), props.rest_height(shape, size_scale)],
             'velocity': [float(vx), float(vy), 0.0],
+            'accel': accel,
             'angular_velocity': ang_vel,
         })
     return objects
@@ -193,7 +212,7 @@ def simulate(cfg, objects):
 
         bodies = [_make_body(o, pcfg) for o in objects]
         body_to_idx = {b: i for i, b in enumerate(bodies)}
-        accel = np.asarray(cfg['objects']['accel'], dtype=float)
+        forces = [(np.asarray(o['accel']) * o['mass']).tolist() for o in objects]
 
         # Optional settling (not recorded), e.g. to drop objects onto the plane.
         for _ in range(pcfg['settle_frames'] * pcfg['substeps']):
@@ -205,10 +224,9 @@ def simulate(cfg, objects):
         in_contact = set()
         for t in range(1, vcfg['num_frames']):
             for _ in range(pcfg['substeps']):
-                if accel.any():
-                    for o, b in zip(objects, bodies):
-                        p.applyExternalForce(b, -1, (accel * o['mass']).tolist(),
-                                             [0, 0, 0], p.WORLD_FRAME)
+                for f, b in zip(forces, bodies):
+                    if any(f):
+                        p.applyExternalForce(b, -1, f, [0, 0, 0], p.WORLD_FRAME)
                 p.stepSimulation()
                 current = set()
                 for c in p.getContactPoints():
@@ -229,7 +247,7 @@ def simulate(cfg, objects):
     return {
         'object_property': [{k: o[k] for k in
                              ('id', 'shape', 'color', 'color_rgb', 'material',
-                              'size', 'size_scale', 'mass')} for o in objects],
+                              'size', 'size_scale', 'mass', 'accel')} for o in objects],
         'trajectory': trajectory,
         'collisions': collisions,
     }

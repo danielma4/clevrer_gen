@@ -1,0 +1,37 @@
+# OOD test for balls_accel.yaml: same except |accel| in [3, 4], above train's
+# [0.5, 2]. Per-object accel is saved in annotation object_property.
+seed: 1042                # disjoint from train's seeds
+
+objects:
+  num: [1, 5]
+  fix_num_per_video: true
+  speed: [1, 6]
+  direction: random
+  accel:
+    magnitude: [[-4.0, -3.0], [3.0, 4.0]]
+    direction: {along: 0.5, random: 0.5}
+
+video:
+  num_frames: 64
+
+properties:
+  shapes: [sphere]
+  sizes: {large: 0.35, small: 0.35}
+
+output:
+  num_videos: 500
+  collision_filter:
+    max: 0
+  window_filter:
+    n_frames: 29
+    full_objects: true
+  collision_filter_max_tries: 300
+
+render:
+  samples: 16
+  device: OPTIX
+  views:
+    perspective: true
+    topdown: false
+  passes:
+    flow: false

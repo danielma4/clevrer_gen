@@ -1,0 +1,40 @@
+# OOD (speed, extreme): 1-5 spheres at 8-14 m/s, zero collisions. Pushes past
+# new_velos (7-10) and well past training (1-6). At 14 m/s a ball moves far enough
+# per frame to alias in the VAE's 4-frame temporal packing; the track head predicts
+# continuous coordinates and is not subject to that.
+seed: 42
+
+objects:
+  # Pinned to 1, not [1,5]: at these speeds the window filter accepts multi-object
+  # configs only rarely (6 of 8 in a pilot had one object), which would confound
+  # speed with object count. Fixing it at 1 makes one_ball_nocollide the control.
+  num: 1
+  speed: [[8, 14]]
+  direction: random
+
+video:
+  num_frames: 64
+
+properties:
+  shapes: [sphere]
+  sizes: {large: 0.35, small: 0.35}
+
+output:
+  # window_filter means every rendered clip is usable, so this is ~= the clip count.
+  num_videos: 150
+  collision_filter:
+    max: 0
+  # 30, not 29: the rgb arm's FLF VAE needs n_frames%4==2 so it evals at 30, and a
+  # constant-count 30-window contains a valid 29-window for the causal arm.
+  window_filter:
+    n_frames: 30
+  collision_filter_max_tries: 400   # 8-14 m/s exits frame fast; low acceptance rate
+
+render:
+  samples: 16
+  device: OPTIX
+  views:
+    perspective: true
+    topdown: false
+  passes:
+    flow: false

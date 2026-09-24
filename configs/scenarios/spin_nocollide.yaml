@@ -1,0 +1,37 @@
+# OOD (rotation): 1-5 spinning cubes/cylinders, zero collisions. Surface points move
+# differently from the centroid, so tracks must model rotation while the centroid-level
+# pixel story stays simple. Closest thing to non-rigid motion without a new dataset.
+#
+# new_shapes_nocollide is the control: same shapes, no spin. The pair isolates rotation
+# from the shape change.
+seed: 42
+
+objects:
+  num: [1, 5]
+  speed: [1, 6]
+  direction: random
+  angular_speed: [4.0, 8.0]
+
+video:
+  num_frames: 64
+
+properties:
+  shapes: [cube, cylinder]
+  sizes: {large: 0.35, small: 0.35}
+
+output:
+  num_videos: 150
+  collision_filter:
+    max: 0
+  window_filter:
+    n_frames: 30
+  collision_filter_max_tries: 300
+
+render:
+  samples: 16
+  device: OPTIX
+  views:
+    perspective: true
+    topdown: false
+  passes:
+    flow: false
